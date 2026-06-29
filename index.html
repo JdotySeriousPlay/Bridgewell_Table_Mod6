@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridgewell Table · Template</title>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* Per-module accent — overridden at runtime from TABLE.theme.accent (see boot()) */
+  --accent:#4F81BD;
+  --accent-hover:#3a6da8;
+  --accent-focus:#7ab0e0;
+  --accent-soft:rgba(79,129,189,.07);
+  --accent-soft2:rgba(79,129,189,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1424}
+body{font-family:var(--font-sans);display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:920px;min-height:580px;font-family:var(--font-sans);background:#1a2744;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;border-radius:4px}
+.screen{display:none;width:100%;min-height:580px}
+.screen.active{display:flex}
+
+/* AVERY SCREENS */
+.avery-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.avery-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 1rem;display:block}
+.avery-photo-ph{width:90px;height:90px;border-radius:50%;background:#2d3f6e;border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;color:#a0b4cc;font-size:.7rem;text-align:center}
+.avery-label{color:#a0b4cc;font-size:.75rem;letter-spacing:.06em;margin-bottom:.2rem}
+.avery-title{color:#fff;font-size:1.15rem;font-weight:600;margin-bottom:.2rem}
+.avery-sub{color:#7a90b0;font-size:.8rem;margin-bottom:1.2rem}
+.avery-quote{color:#d0dcea;font-size:.9rem;line-height:1.8;max-width:500px;margin:0 auto .9rem;font-style:italic}
+.avery-body{color:#b0c4d8;font-size:.83rem;line-height:1.75;max-width:500px;margin:0 auto 1.5rem}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.8rem;font-size:.9rem;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-primary:hover,.btn-primary:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+
+/* AUDIO BAR */
+.audio-wrap{display:flex;align-items:center;gap:.6rem;max-width:360px;margin:0 auto 1.1rem}
+.audio-play{width:32px;height:32px;border-radius:50%;background:var(--accent);border:2px solid transparent;cursor:pointer;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play:hover,.audio-play:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+.audio-track{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .25s linear}
+.audio-time{color:#7a90b0;font-size:.7rem;min-width:34px;text-align:right}
+.audio-error{color:#e07a7a;font-size:.72rem;margin-top:.3rem;display:none}
+.transcript-btn{background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;margin-top:.4rem}
+.transcript-btn:hover,.transcript-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.transcript-box{background:#0d1a30;border:1px solid #2d3f6e;border-radius:6px;padding:.75rem 1rem;font-size:.78rem;color:#b0c4d8;line-height:1.65;max-width:500px;margin:.5rem auto 0;text-align:left;display:none}
+
+/* HUB */
+.hub-screen{flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;background:#1a2744;min-height:580px;position:relative}
+.hub-title{color:#fff;font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.hub-sub{color:#7a90b0;font-size:.78rem;margin-bottom:.9rem;text-align:center}
+.prog-wrap{width:100%;max-width:500px;height:5px;background:#2d3f6e;border-radius:3px;margin-bottom:.35rem}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.prog-label{color:#7a90b0;font-size:.72rem;margin-bottom:1.4rem}
+.char-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;width:100%;max-width:640px}
+@media(max-width:600px){.char-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:380px){.char-grid{grid-template-columns:repeat(2,1fr)}}
+.char-card{border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.char-card:hover:not(.done),.char-card:focus:not(.done){transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.4);outline:none}
+.char-card:focus:not(.done){outline:2px solid #fff;outline-offset:2px}
+.char-card.done{opacity:.5;cursor:default}
+.char-avatar{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;object-fit:cover;border:2px solid rgba(255,255,255,.25);display:block}
+.char-avatar-ph{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:.85rem;border:2px solid rgba(255,255,255,.2)}
+.char-name{font-size:.74rem;font-weight:600;color:#fff}
+.char-role{font-size:.63rem;color:rgba(255,255,255,.5);margin-top:.1rem;line-height:1.3}
+.done-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.reset-btn{margin-top:1.5rem;background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.4rem 1rem;font-size:.75rem;cursor:pointer}
+.reset-btn:hover,.reset-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.debrief-btn{position:absolute;right:1.1rem;bottom:1.1rem;background:#2d3f6e;color:#fff;border:1px solid #43578a;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer}
+.debrief-btn:hover{background:#37487a}
+
+/* SPLIT SCREENS */
+.split-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.split-screen{flex-direction:column}}
+.s-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:280px}
+@media(max-width:700px){.s-left{flex:0 0 220px}}
+.s-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.s-left-color{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+.char-portrait{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem;display:block}
+.char-portrait-ph{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem}
+.char-name-large{color:#fff;font-size:1.1rem;font-weight:600;margin-bottom:.2rem}
+.char-role-large{color:rgba(255,255,255,.6);font-size:.78rem}
+
+.bubble{position:absolute;top:.9rem;left:.9rem;right:.9rem;background:rgba(15,25,50,.88);border-left:3px solid var(--accent);color:#d0dcea;border-radius:8px;padding:.6rem .8rem;font-size:.76rem;line-height:1.5;font-style:italic;max-width:240px}
+.family-flag{position:absolute;bottom:.8rem;left:.8rem;background:rgba(150,70,10,.9);border-radius:7px;padding:.5rem .7rem;font-size:.71rem;color:#fff;line-height:1.4;max-width:240px}
+.family-flag strong{display:block;font-size:.65rem;letter-spacing:.04em;margin-bottom:.12rem;opacity:.85}
+
+.s-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.scene-ctx{font-size:.79rem;color:#444;line-height:1.6;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #ced3dc}
+.q-label{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.3rem;text-transform:uppercase}
+.q-text{font-size:.86rem;font-weight:600;color:#1a2744;line-height:1.5;margin-bottom:.85rem}
+.choices{display:flex;flex-direction:column;gap:.55rem}
+.choice-btn{display:flex;align-items:flex-start;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;text-align:left;padding:.35rem .4rem;transition:border-color .15s}
+.choice-btn:hover,.choice-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.choice-btn.selected{border-color:var(--accent);background:var(--accent-soft2)}
+.cbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;margin-top:1px;flex-shrink:0}
+.choice-btn:hover .cbullet,.choice-btn:focus-visible .cbullet{background:var(--accent)}
+.choice-btn.selected .cbullet{background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ctext{font-size:.8rem;color:#222;line-height:1.5}
+
+/* CHAR INTRO SCREEN */
+.char-intro-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.char-intro-screen{flex-direction:column}}
+.ci-audio-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.92);border-top:2px solid;padding:.6rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ci-play{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-play:hover,.ci-play:focus{opacity:.85;outline:2px solid #fff;outline-offset:2px}
+.ci-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer}
+.ci-fill{height:100%;border-radius:2px;width:0%}
+.ci-time{color:rgba(255,255,255,.45);font-size:.66rem;min-width:28px}
+
+/* FEEDBACK */
+.fb-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.fb-screen{flex-direction:column}}
+.fb-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:240px}
+@media(max-width:700px){.fb-left{flex:0 0 200px}}
+.fb-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-left-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.consequence-banner{position:absolute;bottom:0;left:0;right:0;background:rgba(120,20,20,.92);padding:.7rem .9rem;font-size:.74rem;color:#fff;line-height:1.5}
+.consequence-banner strong{display:block;font-size:.64rem;letter-spacing:.04em;margin-bottom:.12rem}
+.avery-interrupt{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.94);border-top:2px solid var(--accent);padding:.7rem .9rem;font-size:.74rem;color:#d0dcea;line-height:1.5;font-style:italic}
+.avery-interrupt strong{display:block;font-size:.64rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.12rem;font-style:normal}
+.fb-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.fb-chosen{font-size:.8rem;color:#333;font-weight:500;margin-bottom:.6rem;line-height:1.5;padding:.5rem .7rem;background:#dde2eb;border-radius:6px;border-left:3px solid #9ab0cc}
+.fb-chosen.correct{background:#e7f2da;border-left:4px solid #2f7d1f;color:#234016}
+.fb-chosen.wrong{background:#f7dede;border-left:4px solid #c0392b;color:#5a1f18}
+.fb-chosen.wrong::before{content:'\2717  INCORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#c0392b;margin-bottom:.25rem}
+.fb-chosen.correct::before{content:'\2713  CORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#2f7d1f;margin-bottom:.25rem}
+.fb-lbl{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.22rem;text-transform:uppercase}
+.fb-text{font-size:.8rem;color:#333;line-height:1.6;margin-bottom:.7rem}
+.fb-takeaway{font-size:.8rem;font-weight:600;font-style:italic;color:#1D3D0F;line-height:1.6;margin-bottom:.9rem;padding:.5rem .7rem;border-left:3px solid #1D3D0F;background:#eaf3de;border-radius:0 6px 6px 0}
+.fb-actions{display:flex;flex-direction:column;gap:.45rem}
+.fb-btn{display:flex;align-items:center;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;padding:.25rem .35rem;transition:border-color .15s}
+.fb-btn:hover,.fb-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.fbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;flex-shrink:0}
+.fb-btn:hover .fbullet,.fb-btn:focus-visible .fbullet{background:var(--accent)}
+.fb-btn-text{font-size:.8rem;color:#222}
+
+/* LIVE REGION */
+#live-region{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* EXIT */
+.exit-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.exit-ring{width:68px;height:68px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--accent);font-size:1.5rem}
+</style>
+</head>
+<body>
+
+<div id="app" role="main">
+<div aria-live="polite" aria-atomic="true" id="live-region"></div>
+
+<!-- INTRO (text filled by boot() from TABLE) -->
+<div class="screen avery-screen active" id="screen-intro" role="region" aria-label="Course introduction">
+  <img class="avery-photo" id="intro-avery-photo" src="assets/avery.png" alt="Dr. Patricia Avery" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+  <div class="avery-photo-ph" style="display:none">DA</div>
+  <div class="avery-label" id="intro-avery-label"></div>
+  <div class="avery-title" id="intro-title"></div>
+  <div class="avery-sub" id="intro-sub"></div>
+  <div class="audio-wrap" id="aw-intro">
+    <button class="audio-play" id="btn-avery_intro" onclick="toggleAudio('avery_intro')" aria-label="Play Dr. Avery introduction">▶</button>
+    <div class="audio-track" role="progressbar" aria-label="Audio progress" onclick="seekAudio(event,'avery_intro')"><div class="audio-fill" id="fill-avery_intro"></div></div>
+    <span class="audio-time" id="time-avery_intro" aria-live="off">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_intro">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-intro')" aria-expanded="false" aria-controls="tr-intro">Show transcript</button>
+  <div class="transcript-box" id="tr-intro" role="note"></div>
+  <div class="avery-quote" id="intro-quote" style="margin-top:.9rem"></div>
+  <div class="avery-body" id="intro-body"></div>
+  <button class="btn-primary" id="intro-enter" onclick="showHub()" style="margin-top:.5rem">Enter the room →</button>
+</div>
+
+<!-- HUB (title/sub + cards filled by boot()) -->
+<div class="screen hub-screen" id="screen-hub" role="region" aria-label="Character selection">
+  <div class="hub-title" id="hub-title"></div>
+  <div class="hub-sub" id="hub-sub"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+  <div class="prog-label" id="prog-label" aria-live="polite">0 of 5 perspectives completed</div>
+  <div class="char-grid" id="char-grid" role="list"></div>
+  <button class="reset-btn" onclick="confirmReset()" aria-label="Reset simulation and start over">↺ Start over</button>
+  <button class="debrief-btn" onclick="show('screen-exit')" aria-label="Skip to Dr. Avery's debrief and finish">Dr. Avery's debrief →</button>
+</div>
+
+<!-- CHAR INTRO -->
+<div class="screen char-intro-screen" id="screen-char-intro" role="region" aria-label="Character introduction">
+  <div class="s-left" id="ci-left">
+    <div class="s-left-color" id="ci-color-panel">
+      <img class="char-portrait" id="ci-portrait" alt="" onerror="this.style.display='none';document.getElementById('ci-portrait-ph').style.display='flex'">
+      <div class="char-portrait-ph" id="ci-portrait-ph" style="display:none"></div>
+      <div class="char-name-large" id="ci-name-large"></div>
+      <div class="char-role-large" id="ci-role-large"></div>
+    </div>
+    <div class="ci-audio-bar" id="ci-bar">
+      <button class="ci-play" id="ci-play-btn" onclick="toggleAudio('char_intro')" aria-label="Play character introduction audio">▶</button>
+      <div class="ci-track" onclick="seekAudio(event,'char_intro')" aria-label="Audio seek bar"><div class="ci-fill" id="fill-char_intro"></div></div>
+      <span class="ci-time" id="time-char_intro">0:00</span>
+    </div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="q-label" id="ci-role-label"></div>
+      <div class="q-text" id="ci-intro-text" style="font-size:.95rem;line-height:1.75;color:#1a2744;font-weight:400"></div>
+      <div class="audio-error" id="err-char_intro" style="color:#c05050;font-size:.74rem;margin-top:.5rem">Audio unavailable</div>
+      <button class="transcript-btn" id="ci-transcript-btn" onclick="toggleTranscript('tr-char')" aria-expanded="false" aria-controls="tr-char" style="margin-top:.6rem">Show transcript</button>
+      <div class="transcript-box" id="tr-char" role="note" style="margin-top:.5rem"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <button class="btn-primary" style="background:#1a2744;font-size:.83rem" onclick="goToQ1()">Begin scenario →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q1 -->
+<div class="screen split-screen" id="screen-q1" role="region" aria-label="Question 1">
+  <div class="s-left">
+    <img class="s-left-img" id="q1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q1-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q1-color-panel" style="display:none">
+      <img class="char-portrait" id="q1-portrait" alt="">
+      <div class="char-name-large" id="q1-char-name"></div>
+    </div>
+    <div class="bubble" id="q1-bubble"></div>
+    <div class="family-flag" id="q1-family" style="display:none"><strong class="family-tag"></strong><span id="q1-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q1-ctx"></div>
+      <div class="q-label">Question 1 of 2</div>
+      <div class="q-text" id="q1-text"></div>
+      <div class="choices" id="q1-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB1 -->
+<div class="screen fb-screen" id="screen-fb1" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb1-color').style.display='flex'">
+    <video class="fb-left-img" id="fb1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb1-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb1-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb1-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb1-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb1-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb1-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb1-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb1-text"></div>
+      <div class="fb-takeaway" id="fb1-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb1-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="screen split-screen" id="screen-q2" role="region" aria-label="Question 2">
+  <div class="s-left">
+    <img class="s-left-img" id="q2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q2-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q2-color-panel" style="display:none">
+      <img class="char-portrait" id="q2-portrait" alt="">
+      <div class="char-name-large" id="q2-char-name"></div>
+    </div>
+    <div class="bubble" id="q2-bubble"></div>
+    <div class="family-flag" id="q2-family" style="display:none"><strong class="family-tag"></strong><span id="q2-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q2-ctx"></div>
+      <div class="q-label">Question 2 of 2</div>
+      <div class="q-text" id="q2-text"></div>
+      <div class="choices" id="q2-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB2 -->
+<div class="screen fb-screen" id="screen-fb2" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb2-color').style.display='flex'">
+    <video class="fb-left-img" id="fb2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb2-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb2-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb2-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb2-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb2-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb2-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb2-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb2-text"></div>
+      <div class="fb-takeaway" id="fb2-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb2-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- EXIT / DEBRIEF (filled by boot()) -->
+<div class="screen exit-screen" id="screen-exit" role="region" aria-label="Simulation complete">
+  <div class="exit-ring" aria-hidden="true">✓</div>
+  <div class="avery-label" id="exit-avery-label" style="color:#7a90b0;margin-bottom:.3rem">DR. PATRICIA AVERY</div>
+  <div class="avery-title" id="exit-title" style="color:#fff;margin-bottom:.3rem"></div>
+  <div class="avery-sub" id="exit-sub" style="margin-bottom:.9rem"></div>
+  <div class="audio-wrap">
+    <button class="audio-play" id="btn-avery_exit" onclick="toggleAudio('avery_exit')" aria-label="Play Dr. Avery closing remarks">▶</button>
+    <div class="audio-track" onclick="seekAudio(event,'avery_exit')" aria-label="Audio progress"><div class="audio-fill" id="fill-avery_exit"></div></div>
+    <span class="audio-time" id="time-avery_exit">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_exit">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-exit')" aria-expanded="false" aria-controls="tr-exit">Show transcript</button>
+  <div class="transcript-box" id="tr-exit" role="note"></div>
+  <div class="avery-review" style="max-width:580px;margin:1.4rem auto 0;text-align:left">
+    <div id="exit-lessons-intro" style="color:#7a90b0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.7rem;text-align:center"></div>
+    <div id="exit-lessons" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </div>
+  <div class="avery-body" id="exit-body" style="margin-top:1.3rem"></div>
+  <div style="max-width:520px;margin:1.5rem auto 0;display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.7rem 1rem;background:rgba(79,168,92,.12);border:1px solid rgba(79,168,92,.4);border-radius:10px">
+    <span aria-hidden="true" style="color:#6fc47a;font-size:1rem;flex-shrink:0">✓</span>
+    <span style="color:#cdeacf;font-size:.82rem;line-height:1.5"><strong style="color:#fff" id="exit-completion"></strong> Continue in your lesson when you're ready.</span>
+  </div>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="confirmReset()">↺ Start over</button>
+    <button class="btn-primary" style="background:#2d3f6e" onclick="showHub()">Review hub</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================================
+   ███  EDIT EVERYTHING IN THIS "TABLE" OBJECT TO MAKE A NEW BRIDGEWELL TABLE ███
+   ----------------------------------------------------------------------------
+   The engine below reads ONLY from TABLE. To build another module:
+     1. Copy this whole file.
+     2. Edit the fields in TABLE (title, accent, intro, the 5 team members, debrief).
+     3. Drop the matching images/audio into  assets/  (see TEMPLATE_GUIDE.md).
+     4. Deploy to its own GitHub repo + Pages, embed the URL in Rise.
+   The Bridgewell team (names, colors, portraits) and the Rivera-Washington
+   family are CANON — keep them consistent across every table.
+   ========================================================================== */
+const TABLE = {
+  "meta": {
+    "title": "What Does the Algorithm Look Like?",
+    "moduleLabel": "Module 6 · ALH 4105 · Assess: Screening Algorithm",
+    "hubTitle": "The Bridgewell Table",
+    "hubSub": "Sit with each clinician — build their piece of the screening algorithm, then find where the draft breaks before it goes live.",
+    "completion": "You've completed Module 6 — Screening Algorithm. Your MAP-IT Assess section is complete.",
+    "familyTag": "RIVERA-WASHINGTON FAMILY"
+  },
+  "theme": {
+    "accent": "#1F7A8C"
+  },
+  "avery": {
+    "label": "DR. PATRICIA AVERY · BRIDGEWELL COMMUNITY HEALTH",
+    "portrait": "assets/avery.png",
+    "intro": {
+      "quote": "\"An algorithm looks finished the moment it's on the board — clean boxes, clear arrows. The work is what happens next: walking it through out loud, with the people who'll actually run it, until you find the place the logic quietly fails.\"",
+      "bodyHtml": "Three modules of analysis come together this week. In Module 3 you named <em>who is most at risk</em>. In Module 4 you built the <em>screening framework</em>. In Module 5 you added the <em>genetic and developmental modifiers</em>. This module, all of it becomes one thing — a <strong>screening algorithm</strong>.<br><br>An algorithm is decision logic made <strong>visible</strong>. Not a narrative, not a table — a structured workflow that tells any provider, at any point: <em>given this trigger, take this action; given this finding, follow this pathway</em>. It is built to be <strong>used</strong>, by someone who didn't build it.<br><br>Five components do the work: a clear <strong>entry point</strong>, binary <strong>decision nodes</strong>, specific <strong>action steps</strong>, explicit <strong>referral pathways</strong>, and a <strong>follow-up loop</strong> that brings the case back in. Miss any one and the workflow breaks — usually not on paper, but in practice.<br><br>And here is the rule from Hayden Chapter 5: an algorithm is a <strong>measurement instrument</strong>. It has to be <em>valid</em> (catches the right people), <em>reliable</em> (any provider reads it the same way), and <em>feasible</em> (every step is actually possible in Bridgewell). A node can be perfectly logical and still fail all three.<br><br>My team each takes one member of the Rivera-Washington family one last time. Sit with each clinician, build their piece of the algorithm — and find where the draft breaks before it goes live.",
+      "transcript": "Three modules of analysis come together this week. In Module 3 you named who is most at risk. In Module 4 you built the screening framework. In Module 5 you added the genetic and developmental modifiers. This module, all of it becomes one thing — a screening algorithm. An algorithm is decision logic made visible. Not a narrative, not a table — a structured workflow that tells any provider, at any point: given this trigger, take this action; given this finding, follow this pathway. It is built to be used, by someone who didn't build it. Five components do the work: a clear entry point, binary decision nodes, specific action steps, explicit referral pathways, and a follow-up loop that brings the case back in. Miss any one and the workflow breaks — usually not on paper, but in practice. And here is the rule from Hayden Chapter 5: an algorithm is a measurement instrument. It has to be valid, reliable, and feasible. A node can be perfectly logical and still fail all three. My team each takes one member of the Rivera-Washington family one last time. Sit with each clinician, build their piece of the algorithm — and find where the draft breaks before it goes live.",
+      "audio": "assets/audio/avery_intro_m6.mp3"
+    },
+    "debrief": {
+      "title": "Dr. Avery's Debrief",
+      "sub": "Module 6 · What Does the Algorithm Look Like?",
+      "transcript": "Five components, one workflow. Notice what made the draft defensible: a specific, reachable entry point; binary nodes any provider could answer the same way; action steps a colleague could execute; referral pathways with a named handoff; a follow-up loop with a contingency; the genetic and developmental modifiers drawn as real branches; and equity built into every node instead of bolted on at the end. That's an algorithm as a measurement instrument — valid, reliable, feasible, and honest about who it might miss. Now build it for your own population. Your Visual Risk Algorithm is the capstone of the Assess phase: an entry point, three or more decision nodes, action steps, two referral pathways, a follow-up loop, your Module 5 modifier visible in the logic, and a one-paragraph equity note — with no dead ends and every element labeled. Don't start over; this is the synthesis of everything you already built. A well-built algorithm looks simple when it's done. Getting there is the work. When you submit it, your Assess section is sealed. Next comes Plan.",
+      "lessonsIntro": "Five components, one workflow — and a draft that got better the moment the team walked it through out loud",
+      "bodyHtml": "Five components, one workflow. Notice what made the draft defensible: a <strong>specific, reachable entry point</strong>; <strong>binary nodes</strong> any provider could answer the same way; <strong>action steps</strong> a colleague could execute; <strong>referral pathways</strong> with a named handoff; a <strong>follow-up loop</strong> with a contingency; the <strong>genetic and developmental modifiers</strong> drawn as real branches; and <strong>equity</strong> built into every node instead of bolted on at the end. That's an algorithm as a measurement instrument — valid, reliable, feasible, and honest about who it might miss.<br><br>Now build it for your own population. Your <strong>Visual Risk Algorithm</strong> is the capstone of the Assess phase: an entry point, three or more decision nodes, action steps, two referral pathways, a follow-up loop, your Module 5 modifier visible in the logic, and a one-paragraph equity note — with no dead ends and every element labeled. Don't start over; this is the synthesis of everything you already built.<br><br>A well-built algorithm looks simple when it's done — clean boxes, clear arrows, logical forks. Getting there is the work. When you submit it, your Assess section is <strong>sealed</strong>. Next comes Plan.",
+      "audio": "assets/audio/avery_exit_m6.mp3"
+    }
+  },
+  "team": [
+    {
+      "key": "marcus",
+      "name": "Marcus",
+      "initials": "MC",
+      "creds": "CMA",
+      "color": "#4F81BD",
+      "bgDark": "#1e2e4a",
+      "phColor": "#fff",
+      "role": "Carmen · Entry point + genetic node",
+      "ariaName": "Marcus, CMA",
+      "portrait": "assets/marcus.png",
+      "audio": "assets/audio/marcus_m6.mp3",
+      "lesson": "Entry point + genetic node — a door that's specific and reachable, and family history drawn as a node that reroutes the surface-average case.",
+      "intro": {
+        "role": "Certified Medical Assistant",
+        "text": "Carmen is where the algorithm starts — so the first thing I have to get right is the front door. Who enters this workflow, and through which door? Make it too vague and it catches no one; make it a clinic visit she never takes and it misses her entirely. And there's a second thing the chart hides: her family history isn't a footnote, it's a node — the thing that would catch her even when her risk score looks ordinary.",
+        "transcript": "Carmen is where the algorithm starts — so the first thing I have to get right is the front door. Who enters this workflow, and through which door? Make it too vague and it catches no one; make it a clinic visit she never takes and it misses her entirely. And there's a second thing the chart hides: her family history isn't a footnote, it's a node — the thing that would catch her even when her risk score looks ordinary."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/marcus_q2_m6.jpeg",
+          "pos": "50% 35%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Get the front door right — or the algorithm catches no one.\"",
+        "family": true,
+        "familyText": "Carmen Rivera, 72 · uncontrolled hypertension + type 2 diabetes · Spanish-speaking, limited transportation · hadn't seen a primary care provider in 3 years before her recent visit.",
+        "ctx": "ENTRY POINT — the condition that activates the algorithm: who enters, under what trigger. Must be specific (age + risk threshold + trigger) and feasible for the population it serves.",
+        "q": "Which entry point is well-designed for this algorithm?",
+        "choices": [
+          {
+            "text": "Adults 35–65 with one or more high-risk factors from the Module 3 criteria, entering through either a wellness visit OR a community-based contact (health fair, CHW home visit, faith event) — a defined age band, a defined risk threshold, and a door this population actually uses.",
+            "correct": true,
+            "feedback": "Right. The entry point is specific enough to be workable and includes a community-based trigger, so high-risk people like Carmen — who rarely make a wellness visit — can still enter. Specificity and feasibility together.",
+            "takeaway": "An entry point must be precise AND reachable. A door defined only by a clinic visit shuts out the population the algorithm exists to catch."
+          },
+          {
+            "text": "\"Adults in Bridgewell who may be at risk\" — broad enough that no one is excluded.",
+            "correct": false,
+            "consequence": "With no age, threshold, or trigger, providers can't tell who's in and who's out — the algorithm either screens everyone or no one, and never runs consistently.",
+            "feedback": "Too vague to run. No age range, no risk threshold, no trigger condition — a provider can't tell who enters. This is the classic over-broad entry-point error."
+          },
+          {
+            "text": "\"Adults 35–65 presenting for an annual wellness visit\" — clean, specific, and clinic-anchored.",
+            "correct": false,
+            "feedback": "Specific, but it gates the whole algorithm behind a visit Carmen, DeShawn, and Lucia rarely make. Logical on paper, infeasible in Riverside Flats — the highest-risk people never enter."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Her family history isn't a footnote — it's a node.\"",
+        "family": true,
+        "familyText": "Carmen's ADA risk score sits just below the high-risk cutoff; her BMI alone would route her to the average-risk lane. Her first-degree family history of type 2 diabetes is documented. The assignment requires the Module 5 modifier to be visible in the flowchart.",
+        "ctx": "GENETIC MODIFIER — the Module 5 layer has to appear in the logic as something that changes a route, not a note in the chart.",
+        "q": "How should the family-history modifier appear in the algorithm?",
+        "choices": [
+          {
+            "text": "As a decision node that automatically elevates anyone with a first-degree family history to the high-risk pathway — even when the risk score is below threshold — so the algorithm catches the person who looks average-risk on the surface.",
+            "correct": true,
+            "feedback": "Yes. That's the Module 5 layer working as logic, not margin. Without the node, Carmen lands in the average-risk lane on BMI alone — a pamphlet and \"see you next year.\" The node overrides a sub-threshold score and reroutes her.",
+            "takeaway": "A modifier earns its place by changing a route. Family history drawn as a node does the work; family history written in the chart does nothing."
+          },
+          {
+            "text": "Note the family history in the chart for context, so providers are aware of it.",
+            "correct": false,
+            "consequence": "Filed as context, the history changes no node or route — Carmen stays in the average-risk lane on BMI alone, the exact case the modifier was meant to catch.",
+            "feedback": "\"Noted for context\" is the exact error the rubric marks down. Family history has to change a decision — an interval, a tool, a route — not sit as background that alters nothing."
+          },
+          {
+            "text": "Add a node that refers her for genetic testing and pauses her pathway until a confirmed mutation result returns.",
+            "correct": false,
+            "feedback": "Family history is a validated proxy and is actionable now — no confirmed test required. A node that stalls the pathway waiting for testing delays prevention for no benefit."
+          }
+        ]
+      }
+    },
+    {
+      "key": "jordan",
+      "name": "Jordan",
+      "initials": "JD",
+      "creds": "Nutrition",
+      "color": "#4FA85C",
+      "bgDark": "#12331f",
+      "phColor": "#fff",
+      "role": "DeShawn · Referral pathway + follow-up loop",
+      "ariaName": "Jordan, Nutrition",
+      "portrait": "assets/jordan.png",
+      "audio": "assets/audio/jordan_m6.mp3",
+      "lesson": "Referral + follow-up loop — resource, mechanism, timeframe, and a contingency for the contact that doesn't land, so no case falls out.",
+      "intro": {
+        "role": "Nutrition Specialist",
+        "text": "DeShawn is the reason I don't trust an arrow that just points off the page. Two years ago his algorithm said 'refer for follow-up.' Where? How? By when? Nobody could say — so he fell through. A referral isn't a direction, it's a handoff with a name on it. And it isn't finished until there's a plan for the day the patient doesn't pick up the phone.",
+        "transcript": "DeShawn is the reason I don't trust an arrow that just points off the page. Two years ago his algorithm said 'refer for follow-up.' Where? How? By when? Nobody could say — so he fell through. A referral isn't a direction, it's a handoff with a name on it. And it isn't finished until there's a plan for the day the patient doesn't pick up the phone."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/deshawn.jpeg",
+          "pos": "50% 30%"
+        },
+        "q2": {
+          "img": "assets/scenes/jordan_q2_m6.jpeg",
+          "pos": "50% 40%"
+        }
+      },
+      "q1": {
+        "bubble": "\"A referral isn't a direction — it's a handoff with a name on it.\"",
+        "family": true,
+        "familyText": "DeShawn Washington, 48 · pre-diabetic flag, never re-screened · no insurance, no primary care provider, works two jobs · day-shift worker, hard to reach in business hours.",
+        "ctx": "REFERRAL PATHWAY — the destination for cases that meet referral criteria. Must name the resource, the handoff mechanism, and the timeframe. A pathway that ends nowhere is a dead end.",
+        "q": "Which referral pathway is well-designed?",
+        "choices": [
+          {
+            "text": "\"Refer to the Bridgewell Diabetes Prevention Program. Warm handoff via the community health worker. Navigator contact within 7 days.\" — a named resource, a defined handoff mechanism, and a defined timeframe.",
+            "correct": true,
+            "feedback": "Right. Every well-designed referral names where, how, and when. A CHW warm handoff also fits DeShawn's SDOH profile far better than a cold appointment slot — specific and reachable.",
+            "takeaway": "A referral pathway is resource + mechanism + timeframe. Anything less is an arrow pointing off the page."
+          },
+          {
+            "text": "\"Refer to an appropriate specialist as clinically indicated.\"",
+            "correct": false,
+            "feedback": "Not actionable. Who is the specialist? How is the referral made? By when? \"As clinically indicated\" hands every decision back to a provider who needed the algorithm to make it."
+          },
+          {
+            "text": "\"Refer to community resources as needed.\"",
+            "correct": false,
+            "consequence": "With no named resource or handoff, \"as needed\" is the same vague referral that produced DeShawn's no-show two years ago — the case goes nowhere.",
+            "feedback": "A pathway that ends nowhere. \"As needed,\" with no named resource or handoff, is exactly the vague referral that produced DeShawn's no-show two years ago."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"It isn't finished until there's a plan for the missed call.\"",
+        "family": true,
+        "familyText": "The draft refers DeShawn to the DPP with a 7-day navigator contact — and stops there. As a day worker he's unreachable in business hours; the warm handoff goes to voicemail and the case has no defined next step.",
+        "ctx": "FOLLOW-UP LOOP — the mechanism that brings a case back into the algorithm after an action. Without a contingency for failed contact, the pathway is one-directional and the case drops out.",
+        "q": "What does the follow-up loop need so DeShawn's case doesn't fall out?",
+        "choices": [
+          {
+            "text": "A contingency branch: if navigator contact fails within 7 days, route to a second CHW attempt via text or in-person home visit before the case is ever closed — a channel that reaches a day worker the business-hours call missed.",
+            "correct": true,
+            "feedback": "Yes. A referral with one attempt and no fallback is a cliff, not a loop. The contingency uses a different contact method and keeps a high-risk case inside the workflow. Now the loop actually closes.",
+            "takeaway": "Close a follow-up loop with a second channel, not a longer wait. The case that doesn't answer needs a defined way back in."
+          },
+          {
+            "text": "Extend the navigator's contact window from 7 days to 30, giving him more time to call back.",
+            "correct": false,
+            "feedback": "More time on the same broken channel changes little — the worker who can't answer at day 7 still can't at day 30. The fix is a new method, not a longer deadline."
+          },
+          {
+            "text": "After the failed contact, mark the referral \"attempted\" and return him to the average-risk pathway.",
+            "correct": false,
+            "consequence": "That quietly downgrades a high-risk case over a logistics failure — returning an unreached high-risk patient to average-risk monitoring is the deterioration a follow-up loop exists to prevent.",
+            "feedback": "That downgrades a high-risk case because of a logistics failure. Unreachable is not the same as declined — the loop has to catch him, not release him."
+          }
+        ]
+      }
+    },
+    {
+      "key": "nova",
+      "name": "Nova",
+      "initials": "NV",
+      "creds": "RDH",
+      "color": "#CF95C7",
+      "bgDark": "#2e1b2b",
+      "phColor": "#fff",
+      "role": "Imani · Decision node + action step",
+      "ariaName": "Nova, RDH",
+      "portrait": "assets/nova.png",
+      "audio": "assets/audio/nova_m6.mp3",
+      "lesson": "Decision node + action step — binary, answerable-now nodes and actions a colleague could execute, with result delivery built in.",
+      "intro": {
+        "role": "Registered Dental Hygienist",
+        "text": "A node is only useful if the person reading it can actually answer it — with what's in front of them, not a lab that comes back in three weeks. And the action after the node has to be something you could hand to a colleague and they'd do exactly the same thing. 'Provide support' isn't an action. For Imani, who's already anxious, the action also has to include how the result gets delivered.",
+        "transcript": "A node is only useful if the person reading it can actually answer it — with what's in front of them, not a lab that comes back in three weeks. And the action after the node has to be something you could hand to a colleague and they'd do exactly the same thing. 'Provide support' isn't an action. For Imani, who's already anxious, the action also has to include how the result gets delivered."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/imani.jpeg",
+          "pos": "50% 28%"
+        },
+        "q2": {
+          "img": "assets/scenes/nova_q2_m6.jpeg",
+          "pos": "50% 35%"
+        }
+      },
+      "q1": {
+        "bubble": "\"A node is only useful if it can be answered at the visit.\"",
+        "family": true,
+        "familyText": "Imani Washington, 24 · 14 weeks pregnant · elevated BP at visit · strong first-degree family history of hypertension + diabetes · insured, has a PCP.",
+        "ctx": "DECISION NODE — a binary yes/no fork that directs the case to one of two pathways. Must be answerable with information available at the point of contact; never circular.",
+        "q": "Which is a well-formed decision node for Imani's pathway?",
+        "choices": [
+          {
+            "text": "\"Is the gestational-diabetes OGTT result at or above the diagnostic threshold? YES → high-risk prenatal pathway. NO → routine prenatal monitoring.\" — binary, unambiguous, and answerable from a test done at the visit.",
+            "correct": true,
+            "feedback": "Right. The node forks cleanly on information available at the point of contact, and any provider would read it the same way. That's reliability built into the logic.",
+            "takeaway": "A good node is binary, unambiguous, and answerable now — two providers reading the same case reach the same fork."
+          },
+          {
+            "text": "\"Is the patient high-risk? YES → high-risk pathway. NO → average-risk pathway.\"",
+            "correct": false,
+            "consequence": "\"High-risk by what?\" — the node uses its own answer as the question, so two providers fork two different ways and the algorithm stops being reliable.",
+            "feedback": "Circular. High-risk by what criteria? The node has to state the actual threshold — it can't use the answer as the question."
+          },
+          {
+            "text": "\"Does the patient have a confirmed genetic predisposition on file? YES → refer to genetics.\"",
+            "correct": false,
+            "feedback": "A dead end at point of contact — that result isn't available at the prenatal visit. A node that depends on information you don't have yet stalls the workflow."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"'Provide support' isn't an action a colleague can run.\"",
+        "family": true,
+        "familyText": "Imani's BP and family history flag elevated risk, and she's already anxious. The action step at this node has to be specific enough for any provider to execute — and, given her anxiety, has to include result delivery.",
+        "ctx": "ACTION STEP — the specific action taken at a node. Concrete enough that a colleague reading it does exactly the same thing; when stakes are high, it includes how the result is communicated.",
+        "q": "Which action step belongs at this node?",
+        "choices": [
+          {
+            "text": "\"Administer the Edinburgh Postnatal Depression Scale and confirm the BP monitoring schedule; deliver results with plain-language counseling about intergenerational risk and a written follow-up plan; route a positive screen to the perinatal navigator within 72 hours.\"",
+            "correct": true,
+            "feedback": "Yes. Anyone reading this knows exactly what to do, and the result is paired with a plan — so a positive screen becomes care, not fear. Pairing the action with result delivery is what protects an anxious patient.",
+            "takeaway": "An action step names the tool, the action, the timeframe — and, when stakes are high, how the result is communicated."
+          },
+          {
+            "text": "\"Provide support and discuss concerns with the patient.\"",
+            "correct": false,
+            "feedback": "Not actionable. Support how? Discuss what, with which tool, by when? A colleague reading this can't reproduce it — the definition of a vague action step."
+          },
+          {
+            "text": "\"Give the patient her risk numbers and have her research the results on her own.\"",
+            "correct": false,
+            "consequence": "Raw numbers with no interpretation hand an already-anxious patient a scare and no path — psychological harm, not care.",
+            "feedback": "Raw numbers with no interpretation maximize anxiety and minimize understanding — psychological harm, not an action step. The action has to carry a plan."
+          }
+        ]
+      }
+    },
+    {
+      "key": "elena",
+      "name": "Elena",
+      "initials": "EL",
+      "creds": "RRT",
+      "color": "#B3A2C7",
+      "bgDark": "#211a2e",
+      "phColor": "#fff",
+      "role": "Marco · Developmental branch + feasibility",
+      "ariaName": "Elena, RRT",
+      "portrait": "assets/elena.png",
+      "audio": "assets/audio/elena_m6.mp3",
+      "lesson": "Developmental branch + feasibility — a separate pathway for the high-risk adolescent, landing on a referral that actually exists nearby.",
+      "intro": {
+        "role": "Registered Respiratory Therapist",
+        "text": "Marco is 16, and the algorithm starts at 35 — so as written, the kid with a positive family history and a concerning BMI can't even enter. That's a developmental gap, and the fix is a branch, not a wider age band. And once I route him somewhere, I have to ask the question that sinks most algorithms: does the place I'm sending him actually exist near here?",
+        "transcript": "Marco is 16, and the algorithm starts at 35 — so as written, the kid with a positive family history and a concerning BMI can't even enter. That's a developmental gap, and the fix is a branch, not a wider age band. And once I route him somewhere, I have to ask the question that sinks most algorithms: does the place I'm sending him actually exist near here?"
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/marco.jpeg",
+          "pos": "50% 25%"
+        },
+        "q2": {
+          "img": "assets/scenes/elena_q2_m6.jpeg",
+          "pos": "50% 35%"
+        }
+      },
+      "q1": {
+        "bubble": "\"He's 16 — and the algorithm starts at 35.\"",
+        "family": true,
+        "familyText": "Marco Rivera-Washington, 16 · early insulin resistance on a school physical · positive first-degree family history · BMI in the concerning range. The draft entry point reads \"adults 35–65.\"",
+        "ctx": "DEVELOPMENTAL MODIFIER — the same inherited risk surfaces differently at different ages. The Module 5 layer has to appear as a distinct pathway, not a note.",
+        "q": "How should the algorithm handle a high-risk adolescent the adult entry point excludes?",
+        "choices": [
+          {
+            "text": "Add a developmental flag — a branch routing anyone under 18 with two or more risk factors (including positive family history) to a pediatric or school-based screening pathway — rather than excluding him because the algorithm was written for adults.",
+            "correct": true,
+            "feedback": "Right. Adolescence is the highest-yield window precisely because intervening early bends the curve. A separate developmental branch catches Marco now instead of waiting the nineteen years it takes him to age into the adult door.",
+            "takeaway": "A developmental modifier is a separate branch, not a wider age band — the life stage changes the tools, the route, and the endpoint."
+          },
+          {
+            "text": "Leave the entry at 35–65 and rescreen Marco when he ages in — he's 16 and not in crisis.",
+            "correct": false,
+            "consequence": "Left to age in, Marco's inherited insulin resistance progresses through exactly the window where it was cheapest to bend — and the early-intervention chance is gone by 35.",
+            "feedback": "\"Not in crisis\" plus inherited risk is the case for acting earlier, not waiting. Letting him age in forfeits the adolescent window where prevention does the most good."
+          },
+          {
+            "text": "Simply lower the algorithm's entry age to 16 so the same adult pathway applies to everyone.",
+            "correct": false,
+            "feedback": "Dropping the age band routes adolescents through adult tools, intervals, and referrals. Developmental timing means a 16-year-old needs a pediatric or school-based branch, not the adult workflow with a younger label."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Does the place I'm sending him actually exist near here?\"",
+        "family": true,
+        "familyText": "The team's first draft of Marco's branch refers him to a pediatric cardiologist — but there is no pediatric cardiology clinic within 40 miles of Bridgewell. Every pathway has to reach a reachable endpoint.",
+        "ctx": "FEASIBILITY — every step has to be actually possible in the setting, and every pathway must reach an endpoint a patient can reach. Feasibility is the most common algorithm failure.",
+        "q": "What's wrong with Marco's branch, and how is it fixed?",
+        "choices": [
+          {
+            "text": "It's a feasibility failure — the referral endpoint doesn't exist in the community. Reroute through the school-based health center to a reachable resource (telehealth specialty consult or the nearest FQHC pediatric service), with consent and privacy resolved up front, so the branch reaches a real endpoint.",
+            "correct": true,
+            "feedback": "Yes. An algorithm that refers to a resource that isn't there is logically sound and practically useless. Feasibility is the most common algorithm failure — every pathway has to land somewhere a patient can actually reach.",
+            "takeaway": "A referral to a resource that doesn't exist is a dead end. Test every endpoint against what's actually available in the setting."
+          },
+          {
+            "text": "Nothing's wrong — the referral is clinically correct, and transportation is the family's responsibility to solve.",
+            "correct": false,
+            "consequence": "A 40-mile referral with no transit hands the access barrier back to the family — the exact failure the algorithm was supposed to design around.",
+            "feedback": "Clinically correct but infeasible is still a dead end. A 40-mile referral with no transit is the access barrier the algorithm is supposed to design around, not hand back to the family."
+          },
+          {
+            "text": "Screen at school and immediately report every positive result to his parents, regardless of consent rules.",
+            "correct": false,
+            "feedback": "That solves the wrong problem and breaks adolescent confidentiality. The branch's gap is a missing reachable endpoint; disclosure still has to run inside the consent framework."
+          }
+        ]
+      }
+    },
+    {
+      "key": "alicia",
+      "name": "Alicia",
+      "initials": "AR",
+      "creds": "PTA",
+      "color": "#F79646",
+      "bgDark": "#2a1c0a",
+      "phColor": "#fff",
+      "role": "Two zip codes · Evaluation + equity",
+      "ariaName": "Alicia, PTA",
+      "portrait": "assets/alicia.png",
+      "audio": "assets/audio/alicia_m6.mp3",
+      "lesson": "Evaluation + equity — valid, reliable, feasible, equitable; language access in every node, and the defensible one-sentence synthesis.",
+      "intro": {
+        "role": "Physical Therapist Assistant",
+        "text": "Before we call this algorithm done, I run it through four questions: is it valid, is it reliable, is it feasible, and is it equitable? The first three you can argue on a whiteboard. The fourth one hides — three of these five family members speak Spanish first, and an algorithm that's logically perfect in English can still quietly fail them. Equity isn't the last paragraph. It's a constraint on every node.",
+        "transcript": "Before we call this algorithm done, I run it through four questions: is it valid, is it reliable, is it feasible, and is it equitable? The first three you can argue on a whiteboard. The fourth one hides — three of these five family members speak Spanish first, and an algorithm that's logically perfect in English can still quietly fail them. Equity isn't the last paragraph. It's a constraint on every node."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/family.jpeg",
+          "pos": "50% 30%"
+        },
+        "q2": {
+          "img": "assets/scenes/alicia_q2_m6.jpeg",
+          "pos": "50% 40%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Equity isn't the last paragraph — it's a constraint on every node.\"",
+        "family": true,
+        "familyText": "The completed draft algorithm, applied to the whole family. Three of the five Rivera-Washington members' primary language is Spanish; every referral endpoint in the draft assumes English-language access.",
+        "ctx": "EQUITY CHECK — equity problems are usually invisible on paper and appear in practice: access, language, transport. The assignment requires a one-paragraph equity note grounded in the real population.",
+        "q": "How should language access enter the algorithm?",
+        "choices": [
+          {
+            "text": "Flag, at every action and referral step, whether the resource is available in Spanish — so a referral to a service the family can't use in their language is never treated as a completed handoff. Equity built into each node, not added at the end.",
+            "correct": true,
+            "feedback": "Yes. A handoff to an English-only resource for a Spanish-speaking family isn't a completed referral — it's a hidden dead end. Naming language availability at each node makes the invisible failure visible. That's equity as a design constraint.",
+            "takeaway": "If a referral isn't usable in the patient's language, the pathway doesn't actually reach an endpoint. Equity lives in the nodes, not the footnotes."
+          },
+          {
+            "text": "Add one note at the bottom of the algorithm reminding providers that interpretation is available on request.",
+            "correct": false,
+            "feedback": "A footnote is exactly what equity can't be. \"On request\" assumes a patient who knows to ask, in a system she's already struggling to access. It has to live in the referral logic."
+          },
+          {
+            "text": "Leave language out — interpretation is an operational issue for front-desk staff, not part of the decision logic.",
+            "correct": false,
+            "consequence": "Treated as someone else's job, a Spanish-speaking family is referred to English-only resources that never connect — a logically perfect pathway that quietly ends nowhere for three of five members.",
+            "feedback": "If a referral endpoint can't serve the patient's language, the pathway has a dead end the flowchart doesn't show. That makes language a decision-logic problem, not just operational."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Say the whole algorithm in one defensible sentence.\"",
+        "family": true,
+        "familyText": "This is exactly the construct your assignment's narrative is graded on — entry point + decision node + the Module 5 modifier as a branch + a referral pathway with handoff + a follow-up loop + an equity adaptation, in one defensible synthesis.",
+        "ctx": "The narrative is the reasoning behind the flowchart, not a description of its shapes. A defensible statement makes every required element visible.",
+        "q": "Which is a defensible Visual Risk Algorithm statement?",
+        "choices": [
+          {
+            "text": "\"High-risk Rivera-Washington adults enter through a clinic OR community contact; a first-degree family-history node elevates sub-threshold cases to the high-risk pathway; positives route by CHW warm handoff to the Bridgewell DPP with a 7-day contact and a home-visit contingency; under-18s branch to school-based screening; every referral is flagged for Spanish-language availability and rescreened at 6 months.\"",
+            "correct": true,
+            "feedback": "Yes. One statement that names the entry point, a decision node, the Module 5 modifier as a branch, a referral pathway with its handoff, a follow-up loop with a contingency, the developmental branch, and the equity adaptation. That's every required element in one defensible synthesis.",
+            "takeaway": "A defensible algorithm is one synthesis with every part visible: entry · node · modifier branch · pathway + handoff · follow-up loop · equity adaptation."
+          },
+          {
+            "text": "\"The flowchart has a start box, three decision diamonds, two arrows to referral boxes, and an end box, laid out top to bottom.\"",
+            "correct": false,
+            "feedback": "That re-describes the shapes, not the reasoning. The narrative isn't a description of the flowchart — it's the justification behind each design decision, which this says nothing about."
+          },
+          {
+            "text": "\"We built a clear, well-organized algorithm that screens the family for diabetes and refers positives for care.\"",
+            "correct": false,
+            "feedback": "Generic and unfalsifiable — no entry criteria, no modifier, no named pathway, no follow-up, no equity. \"Well-organized\" isn't a design decision the rubric can credit."
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ============================ ENGINE (do not edit per-table) ================ */
+// Derive the engine's lookup tables from TABLE. Adding/reordering members in
+// TABLE.team automatically updates the hub, progress count, and debrief.
+const TEAM = TABLE.team;
+const TEAM_KEYS = TEAM.map(t=>t.key);
+const byKey = {}; TEAM.forEach(t=>byKey[t.key]=t);
+
+const PORTRAITS = { avery:TABLE.avery.portrait };
+TEAM.forEach(t=>PORTRAITS[t.key]=t.portrait);
+
+const SCENE_IMG = 'assets/conferenceroom.jpg';
+const SCENE_ASSETS = {};
+TEAM.forEach(t=>SCENE_ASSETS[t.key]=t.scenes||{});
+function sceneFor(name,qNum){
+  const e=(SCENE_ASSETS[name]||{})['q'+qNum];
+  if(e&&e.video)return{video:e.video,pos:e.pos};
+  if(typeof e==='string')return{img:e};
+  if(e&&e.img)return{img:e.img,pos:e.pos};
+  return{img:SCENE_IMG};
+}
+const SCENE_BLOB = {};
+
+const AUDIO_URLS = { avery_intro:TABLE.avery.intro.audio, avery_exit:TABLE.avery.debrief.audio };
+TEAM.forEach(t=>AUDIO_URLS[t.key]=t.audio);
+
+const TRANSCRIPTS = { avery_intro:TABLE.avery.intro.transcript, avery_exit:TABLE.avery.debrief.transcript };
+TEAM.forEach(t=>TRANSCRIPTS[t.key]=(t.intro&&t.intro.transcript)||t.intro.text);
+
+const CHARS = {};
+TEAM.forEach(t=>{ CHARS[t.key]={color:t.color,bgDark:t.bgDark,audioKey:t.key,intro:t.intro,q1:t.q1,q2:t.q2}; });
+
+const TOTAL = TEAM_KEYS.length;
+
+const audios={};
+let currentChar=null, completed={}, q1Wrong=0, q2Wrong=0;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Compute accent shades from a single hex so the whole UI re-themes per module.
+function applyTheme(hex){
+  function h2(x){return parseInt(x,16);}
+  const c=hex.replace('#','');
+  const r=h2(c.slice(0,2)),g=h2(c.slice(2,4)),b=h2(c.slice(4,6));
+  const mix=(t,a)=>[Math.round(r+(t[0]-r)*a),Math.round(g+(t[1]-g)*a),Math.round(b+(t[2]-b)*a)];
+  const rs=document.documentElement.style;
+  rs.setProperty('--accent',hex);
+  rs.setProperty('--accent-hover','rgb('+mix([0,0,0],.2).join(',')+')');
+  rs.setProperty('--accent-focus','rgb('+mix([255,255,255],.4).join(',')+')');
+  rs.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.07)');
+  rs.setProperty('--accent-soft2','rgba('+r+','+g+','+b+',.13)');
+}
+
+// Populate the static screens (intro / hub cards / debrief) from TABLE.
+function boot(){
+  applyTheme(TABLE.theme.accent);
+  document.title = TABLE.meta.title + ' · ' + TABLE.meta.moduleLabel;
+
+  // intro
+  document.getElementById('intro-avery-photo').src=TABLE.avery.portrait;
+  document.getElementById('intro-avery-label').textContent=TABLE.avery.label;
+  document.getElementById('intro-title').textContent=TABLE.meta.title;
+  document.getElementById('intro-sub').textContent=TABLE.meta.moduleLabel;
+  document.getElementById('tr-intro').textContent=TABLE.avery.intro.transcript;
+  document.getElementById('intro-quote').textContent=TABLE.avery.intro.quote;
+  document.getElementById('intro-body').innerHTML=TABLE.avery.intro.bodyHtml;
+
+  // hub
+  document.getElementById('hub-title').textContent=TABLE.meta.hubTitle;
+  document.getElementById('hub-sub').textContent=TABLE.meta.hubSub;
+  document.getElementById('char-grid').innerHTML=TEAM.map(t=>(
+    '<div class="char-card" id="card-'+t.key+'" style="background:'+t.bgDark+';border-color:'+t.color+'" '+
+    'onclick="startChar(\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')startChar(\''+t.key+'\')" '+
+    'tabindex="0" role="listitem button" aria-label="'+esc(t.ariaName||t.name)+'">'+
+    '<img class="char-avatar" src="'+t.portrait+'" alt="'+esc(t.name)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="char-avatar-ph" style="background:'+t.color+';color:'+(t.phColor||'#fff')+';display:none">'+esc(t.initials||'')+'</div>'+
+    '<div class="char-name">'+esc(t.name)+'</div><div class="char-role">'+esc(t.role)+'</div>'+
+    '</div>'
+  )).join('');
+
+  // family / consequence flag labels (canon, constant)
+  document.querySelectorAll('.family-tag').forEach(e=>e.textContent=TABLE.meta.familyTag);
+  document.querySelectorAll('.consequence-tag').forEach(e=>e.textContent='CONSEQUENCE · '+TABLE.meta.familyTag);
+
+  // debrief
+  document.getElementById('exit-title').textContent=TABLE.avery.debrief.title;
+  document.getElementById('exit-sub').textContent=TABLE.avery.debrief.sub;
+  document.getElementById('tr-exit').textContent=TABLE.avery.debrief.transcript;
+  document.getElementById('exit-lessons-intro').textContent=TABLE.avery.debrief.lessonsIntro;
+  document.getElementById('exit-lessons').innerHTML=TEAM.map(t=>(
+    '<div style="display:flex;gap:.65rem;align-items:flex-start">'+
+    '<span style="width:9px;height:9px;border-radius:50%;background:'+t.color+';margin-top:.4rem;flex-shrink:0"></span>'+
+    '<div style="color:#cdd8e6;font-size:.8rem;line-height:1.55"><strong style="color:#fff">'+esc(t.name)+' ('+esc(t.creds)+'):</strong> '+esc(t.lesson)+'</div></div>'
+  )).join('');
+  document.getElementById('exit-body').innerHTML=TABLE.avery.debrief.bodyHtml;
+  document.getElementById('exit-completion').textContent=TABLE.meta.completion;
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+}
+
+function getAudio(key){
+  if(!audios[key]){
+    const url=key==='char_intro'?AUDIO_URLS[currentChar]:AUDIO_URLS[key];
+    if(!url)return null;
+    const a=new Audio();
+    audios[key]=a;
+    a.addEventListener('timeupdate',()=>updateAudioProgress(key,a));
+    a.addEventListener('ended',()=>{
+      const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+      if(btn)btn.textContent='▶';
+    });
+    a.addEventListener('error',()=>showAudioError(key));
+    a.src=url;
+  }
+  return audios[key];
+}
+
+function showAudioError(key){
+  const errId=key==='char_intro'?'err-char_intro':`err-${key}`;
+  const errEl=document.getElementById(errId);
+  if(errEl)errEl.style.display='block';
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn){btn.textContent='✕';btn.disabled=true;}
+}
+
+function resetPlayButton(key){
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn)btn.textContent='▶';
+}
+
+let activeKey=null;
+
+function btnFor(key){
+  return key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+}
+
+function playKey(key){
+  stopAllAudio('');
+  const a=getAudio(key);if(!a)return;
+  activeKey=key;
+  a.play().then(()=>{
+    if(activeKey!==key){a.pause();return;}
+    const b=btnFor(key);if(b)b.textContent='⏸';
+  }).catch(()=>{
+    if(activeKey===key)resetPlayButton(key);
+  });
+}
+
+function toggleAudio(key){
+  const a=getAudio(key);if(!a)return;
+  if(a.paused){
+    playKey(key);
+  } else {
+    a.pause();activeKey=null;
+    const b=btnFor(key);if(b)b.textContent='▶';
+  }
+}
+
+function stopAllAudio(except){
+  if(activeKey&&activeKey!==except)activeKey=null;
+  Object.keys(audios).forEach(k=>{
+    if(k!==except&&audios[k]&&!audios[k].paused){
+      audios[k].pause();
+      const btn=btnFor(k);
+      if(btn)btn.textContent='▶';
+    }
+  });
+}
+
+function updateAudioProgress(key,a){
+  if(!a.duration)return;
+  const pct=a.currentTime/a.duration*100;
+  const fillId=key==='char_intro'?'fill-char_intro':'fill-'+key;
+  const timeId=key==='char_intro'?'time-char_intro':'time-'+key;
+  const fill=document.getElementById(fillId);
+  const time=document.getElementById(timeId);
+  if(fill)fill.style.width=pct+'%';
+  if(time){const m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60).toString().padStart(2,'0');time.textContent=m+':'+s;}
+}
+
+function seekAudio(e,key){
+  const a=getAudio(key);if(!a||!a.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  a.currentTime=Math.max(0,Math.min(1,pct))*a.duration;
+}
+
+function toggleTranscript(id){
+  const el=document.getElementById(id);
+  const btn=document.querySelector(`[aria-controls="${id}"]`);
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(btn){btn.textContent=open?'Show transcript':'Hide transcript';btn.setAttribute('aria-expanded',!open);}
+}
+
+function announce(msg){
+  const r=document.getElementById('live-region');
+  if(r){r.textContent='';setTimeout(()=>r.textContent=msg,50);}
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');const first=el.querySelector('button,[tabindex="0"]');if(first)setTimeout(()=>first.focus(),100);}
+}
+
+function showHub(){
+  stopAllAudio('');
+  updateHub();
+  show('screen-hub');
+  if(TEAM_KEYS.every(c=>completed[c])){setTimeout(()=>{show('screen-exit');announce('Simulation complete. All perspectives reviewed.');},400);}
+}
+
+function updateHub(){
+  const done=Object.keys(completed).length;
+  document.getElementById('prog').style.width=(done/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=done+' of '+TOTAL+' perspectives completed';
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(!card)return;
+    if(completed[c]){
+      card.classList.add('done');
+      card.setAttribute('tabindex','-1');
+      card.setAttribute('aria-disabled','true');
+      if(!card.querySelector('.done-badge')){const b=document.createElement('div');b.className='done-badge';b.textContent='✓';b.setAttribute('aria-hidden','true');card.appendChild(b);}
+    }
+  });
+}
+
+function confirmReset(){ resetSim(); }
+
+function resetSim(){
+  completed={};q1Wrong=0;q2Wrong=0;activeKey=null;
+  Object.keys(audios).forEach(k=>{audios[k].pause();audios[k].currentTime=0;const b=btnFor(k);if(b)b.textContent='▶';});
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(card){card.classList.remove('done');card.setAttribute('tabindex','0');card.removeAttribute('aria-disabled');const b=card.querySelector('.done-badge');if(b)b.remove();}
+  });
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+  show('screen-intro');
+  announce('Simulation reset. Starting over.');
+}
+
+function startChar(name){
+  if(completed[name])return;
+  currentChar=name;q1Wrong=0;q2Wrong=0;
+  if(audios['char_intro']){audios['char_intro'].pause();audios['char_intro'].currentTime=0;delete audios['char_intro'];}
+  const d=CHARS[name];
+  const panel=document.getElementById('ci-color-panel');
+  panel.style.background=d.bgDark;
+  const portrait=document.getElementById('ci-portrait');
+  portrait.src=PORTRAITS[name];portrait.alt=name.charAt(0).toUpperCase()+name.slice(1);
+  portrait.style.display='block';
+  document.getElementById('ci-portrait-ph').style.display='none';
+  document.getElementById('ci-portrait-ph').textContent=(byKey[name].initials||name.slice(0,2).toUpperCase());
+  document.getElementById('ci-name-large').textContent=byKey[name].name;
+  document.getElementById('ci-role-large').textContent=d.intro.role;
+  document.getElementById('ci-bar').style.borderColor=d.color;
+  document.getElementById('ci-play-btn').style.background=d.color;
+  document.getElementById('fill-char_intro').style.background=d.color;
+  document.getElementById('ci-play-btn').textContent='▶';
+  document.getElementById('ci-play-btn').disabled=false;
+  document.getElementById('fill-char_intro').style.width='0%';
+  document.getElementById('time-char_intro').textContent='0:00';
+  document.getElementById('err-char_intro').style.display='none';
+  document.getElementById('ci-role-label').textContent=d.intro.role;
+  document.getElementById('ci-intro-text').textContent=d.intro.text;
+  document.getElementById('tr-char').textContent=TRANSCRIPTS[name]||'';
+  document.getElementById('tr-char').style.display='none';
+  const tcBtn=document.getElementById('ci-transcript-btn');
+  if(tcBtn){tcBtn.textContent='Show transcript';tcBtn.setAttribute('aria-expanded','false');}
+  show('screen-char-intro');
+  announce(byKey[name].name+' — '+d.intro.role);
+}
+
+function goToQ1(){stopAllAudio('');renderQ1();show('screen-q1');announce('Question 1 of 2');}
+
+function playSceneVideo(vidEl,imgEl,src){
+  if(!vidEl)return;
+  vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;
+  const fail=()=>{vidEl.style.display='none';if(imgEl){imgEl.src=SCENE_IMG;imgEl.style.display='block';}};
+  vidEl.onerror=fail;
+  vidEl.style.display='block';
+  const go=()=>vidEl.play().catch(()=>{});
+  if(SCENE_BLOB[src]){vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();return;}
+  fetch(src).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{
+    if(!SCENE_BLOB[src])SCENE_BLOB[src]=URL.createObjectURL(b);
+    vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();
+  }).catch(fail);
+}
+
+function setSceneImg(qNum,name,isColor){
+  const sceneEl=document.getElementById(`q${qNum}-scene-img`);
+  const vidEl=document.getElementById(`q${qNum}-scene-vid`);
+  const colorEl=document.getElementById(`q${qNum}-color-panel`);
+  const portEl=document.getElementById(`q${qNum}-portrait`);
+  const nameEl=document.getElementById(`q${qNum}-char-name`);
+  const d=CHARS[name];
+  const sc=isColor?{}:sceneFor(name,qNum);
+  const hasVid=!!sc.video;
+  const hasImg=!!sc.img;
+  if(hasVid){
+    playSceneVideo(vidEl,sceneEl,sc.video);
+    sceneEl.style.display='none';
+    if(colorEl)colorEl.style.display='none';
+  } else if(hasImg){
+    sceneEl.src=sc.img;sceneEl.style.display='block';sceneEl.style.objectPosition=sc.pos||'center';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl)colorEl.style.display='none';
+  } else {
+    sceneEl.style.display='none';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl){colorEl.style.display='flex';colorEl.style.background=d.bgDark;}
+    if(portEl){portEl.src=PORTRAITS[name];portEl.alt=name;}
+    if(nameEl)nameEl.textContent=byKey[name].name;
+  }
+  const fbSceneEl=document.getElementById(`fb${qNum}-scene-img`);
+  const fbVidEl=document.getElementById(`fb${qNum}-scene-vid`);
+  const fbColorEl=document.getElementById(`fb${qNum}-color`);
+  const fbPortEl=document.getElementById(`fb${qNum}-portrait`);
+  if(hasVid){
+    playSceneVideo(fbVidEl,fbSceneEl,sc.video);
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else if(hasImg){
+    if(fbSceneEl){fbSceneEl.src=sc.img;fbSceneEl.style.display='block';fbSceneEl.style.objectPosition=sc.pos||'center';}
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else {
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl){fbColorEl.style.display='flex';fbColorEl.style.background=d.bgDark;}
+    if(fbPortEl){fbPortEl.src=PORTRAITS[name];fbPortEl.alt=name;}
+  }
+}
+
+function renderQ1(){
+  const d=CHARS[currentChar].q1;
+  setSceneImg(1,currentChar,false);
+  document.getElementById('q1-bubble').textContent=d.bubble;
+  document.getElementById('q1-ctx').textContent=d.ctx;
+  document.getElementById('q1-text').textContent=d.q;
+  const fam=document.getElementById('q1-family');
+  if(d.family){fam.style.display='block';document.getElementById('q1-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q1-choices',d.choices,handleQ1);
+}
+
+function renderQ2(){
+  const d=CHARS[currentChar].q2;
+  setSceneImg(2,currentChar,false);
+  document.getElementById('q2-bubble').textContent=d.bubble;
+  document.getElementById('q2-ctx').textContent=d.ctx;
+  document.getElementById('q2-text').textContent=d.q;
+  const fam=document.getElementById('q2-family');
+  if(d.family){fam.style.display='block';document.getElementById('q2-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q2-choices',d.choices,handleQ2);
+}
+
+function renderChoices(id,choices,handler){
+  const el=document.getElementById(id);el.innerHTML='';
+  const shuffled=choices.slice();
+  for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+  shuffled.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.setAttribute('aria-label','Option '+(i+1)+': '+ch.text);
+    btn.innerHTML='<div class="cbullet" aria-hidden="true"></div><span class="ctext">'+esc(ch.text)+'</span>';
+    btn.onclick=()=>{
+      [...el.querySelectorAll('.choice-btn')].forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(()=>handler(ch),220);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function handleQ1(ch){
+  const chosen=document.getElementById('fb1-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb1-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb1-consequence');
+  const averyEl=document.getElementById('fb1-avery');
+  const takeEl=document.getElementById('fb1-takeaway');
+  const actions=document.getElementById('fb1-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    addBtn(actions,'Continue to Question 2 →',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback);
+  } else {
+    q1Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb1-consequence-text').textContent=ch.consequence;}
+    if(q1Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb1-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ1();show('screen-q1');});
+    addBtn(actions,'Skip to Question 2',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb1');
+}
+
+function handleQ2(ch){
+  const chosen=document.getElementById('fb2-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb2-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb2-consequence');
+  const averyEl=document.getElementById('fb2-avery');
+  const takeEl=document.getElementById('fb2-takeaway');
+  const actions=document.getElementById('fb2-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    completed[currentChar]=true;updateHub();
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback+' Perspective complete.');
+  } else {
+    q2Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb2-consequence-text').textContent=ch.consequence;}
+    if(q2Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb2-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ2();show('screen-q2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb2');
+}
+
+function addBtn(container,label,fn){
+  const btn=document.createElement('button');
+  btn.className='fb-btn';
+  btn.innerHTML='<div class="fbullet" aria-hidden="true"></div><span class="fb-btn-text">'+esc(label)+'</span>';
+  btn.onclick=fn;container.appendChild(btn);
+}
+
+boot();   // populate screens from TABLE
+// No autoplay on load: narration starts only when the learner presses play.
+</script>
+</body>
+</html>
